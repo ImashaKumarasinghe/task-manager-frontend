@@ -38,32 +38,37 @@ export default function DashboardPage() {
     fetchTasks();
   }, []);
 
-  const fetchTasks = async () => {
-    try {
-      setLoading(true);
-      setError("");
+ const fetchTasks = async () => {
+  try {
+    setLoading(true);
+    setError("");
 
-      const response = await apiFetch("/api/tasks");
+    const response = await apiFetch("/api/tasks");
 
-      if (response.status === 401) {
-        localStorage.removeItem("token");
-        router.push("/login");
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch tasks");
-      }
-
-      const data = await response.json();
-      setTasks(data);
-    } catch (err: any) {
-      console.error(err);
-      setError("Failed to load tasks");
-    } finally {
-      setLoading(false);
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      router.push("/login");
+      return;
     }
-  };
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch tasks");
+    }
+
+    const data = await response.json();
+    setTasks(data);
+  } catch (err: any) {
+    console.error(err);
+
+    if (err.message === "Failed to fetch") {
+      setError("Server unreachable. Please check backend.");
+    } else {
+      setError("Failed to load tasks");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   const addTask = async (title: string, description: string) => {
     try {
@@ -191,16 +196,16 @@ export default function DashboardPage() {
 </div>
 
         {loading && (
-          <div className="bg-white p-4 rounded-xl shadow text-center">
-            Loading tasks...
-          </div>
-        )}
+  <div className="bg-white p-4 rounded-xl shadow text-center text-blue-600 font-semibold">
+    Loading tasks...
+  </div>
+)}
 
         {error && (
-          <div className="bg-red-100 text-red-700 p-4 rounded-xl">
-            {error}
-          </div>
-        )}
+  <div className="bg-red-100 text-red-700 p-4 rounded-xl border border-red-300">
+    {error}
+  </div>
+)}
 
         {!loading && !error && (
           <TaskList
