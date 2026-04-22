@@ -8,6 +8,7 @@ import { apiFetch } from "../../lib/api";
 import { signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 
+
 type Task = {
   id: number;
   title: string;
@@ -20,8 +21,11 @@ export default function DashboardPage() {
   const router = useRouter();
 
   const [tasks, setTasks] = useState<Task[]>([]);
+  //filter
+  const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -133,6 +137,12 @@ export default function DashboardPage() {
     localStorage.removeItem("userEmail");
     router.push("/login");
   };
+  //filter
+  const filteredTasks = tasks.filter((task) => {
+  if (filter === "completed") return task.isCompleted;
+  if (filter === "pending") return !task.isCompleted;
+  return true; // "all"
+});
 
   return (
     <div className="min-h-screen bg-blue-50">
@@ -151,6 +161,34 @@ export default function DashboardPage() {
 
       <div className="max-w-3xl mx-auto p-6 space-y-6">
         <TaskForm onAddTask={addTask} />
+        <div className="flex gap-3 justify-center">
+  <button
+    onClick={() => setFilter("all")}
+    className={`px-4 py-2 rounded-lg ${
+      filter === "all" ? "bg-blue-600 text-white" : "bg-gray-200"
+    }`}
+  >
+    All
+  </button>
+
+  <button
+    onClick={() => setFilter("completed")}
+    className={`px-4 py-2 rounded-lg ${
+      filter === "completed" ? "bg-green-600 text-white" : "bg-gray-200"
+    }`}
+  >
+    Completed
+  </button>
+
+  <button
+    onClick={() => setFilter("pending")}
+    className={`px-4 py-2 rounded-lg ${
+      filter === "pending" ? "bg-yellow-500 text-white" : "bg-gray-200"
+    }`}
+  >
+    Pending
+  </button>
+</div>
 
         {loading && (
           <div className="bg-white p-4 rounded-xl shadow text-center">
@@ -166,7 +204,7 @@ export default function DashboardPage() {
 
         {!loading && !error && (
           <TaskList
-            tasks={tasks}
+            tasks={filteredTasks}
             onToggleComplete={toggleComplete}
             onDeleteTask={deleteTask}
           />
